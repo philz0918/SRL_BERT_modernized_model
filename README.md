@@ -1,52 +1,113 @@
-# SRL BERT Model
+# SRL BERT Model — Predicate-Aware Semantic Role Labeling
 
 [![Hugging Face Model](https://img.shields.io/badge/🤗%20Hugging%20Face-yeomtong%2Fsrl__bert__model-yellow)](https://huggingface.co/yeomtong/srl_bert_model)
 
-BERT-based **Semantic Role Labeling (SRL)** model — this repository contains the **training and inference code**.
+BERT-based **Predicate-Aware Semantic Role Labeling (SRL)** model.
 
-> **📦 Pretrained model weights are hosted on Hugging Face** (too large for GitHub):
+> **⚠️ Note:** The scripts in this repository are **reference code / example snippets** showing how the model was built and trained.
+> For actual use, load the **working modules and pretrained checkpoint from the Hugging Face Hub** (checkpoint is too large for GitHub):
 > 👉 **[huggingface.co/yeomtong/srl_bert_model](https://huggingface.co/yeomtong/srl_bert_model)**
 
-## Repository Contents
+## Why This Model?
+
+In practice, **[AllenNLP](https://allenai.org/allennlp)** has been the go-to library for ready-to-use SRL — most other SRL models in the literature are research code intended for benchmarking, not directly usable out of the box. However, AllenNLP is no longer actively maintained and its SRL inference is relatively slow.
+
+**This model performs comparably to AllenNLP while running significantly faster** (up to ~10× with the BERT variant), and — unlike faster research models such as Zhang et al. (2022), which require substantial preprocessing and setup to run — it ships with **plug-and-play inference code**: download from Hugging Face and predict in a few lines (see Quick Start below).
+
+### Performance Comparison
+
+| Model | P | R | F1 | Time (m) |
+|---|---|---|---|---|
+| Our Model (BERT) | 85.98 | 86.32 | 86.15 | **1.36** |
+| Our Model (RoBERTa) | 86.19 | 87.97 | 87.07 | 5.36 |
+| Our Model (DeBERTa) | 86.78 | **88.22** | **87.49** | 7.57 |
+| AllenNLP | **86.81** | 86.63 | 86.72 | 13.18 |
+| Zhang et al. (2022) | 84.53 | 85.41 | 85.45 | 1.46 |
+
+- **Our Model (DeBERTa)** achieves the best F1 (87.49) and recall, outperforming AllenNLP while running ~1.7× faster.
+- **Our Model (BERT)** is the fastest usable option (1.36 min, ~10× faster than AllenNLP) with only a small F1 trade-off.
+- Zhang et al. (2022) is similarly fast but does not provide readily runnable inference code.
+
+## Installation
+
+```bash
+pip install torch transformers huggingface_hub
+```
+
+## Quick Start — Load the Pretrained Model from Hugging Face
+
+Download the checkpoint and supporting modules directly from the Hub, then run predictions:
+
+```python
+import sys
+from huggingface_hub import hf_hub_download, snapshot_download
+
+# Download the trained checkpoint
+ckpt_path = hf_hub_download(
+    repo_id="yeomtong/srl_bert_model",
+    filename="best_srl_Sep_29.ckpt")
+
+# Download the full repo (predictor / model / visualizer modules)
+repo_dir = snapshot_download("yeomtong/srl_bert_model")
+sys.path.append(repo_dir)
+
+from predictor import srl_init
+from model import PredicateAwareSRL
+from visualizer import prediction, prediction_formatted
+
+# Load model
+srl_init(ckpt_path, bert_name="bert-base-cased")
+
+# Run SRL prediction
+test_sentence = "I want to go home"
+prediction(test_sentence)
+```
+
+Output:
+
+```
+Sentence: I want to go home
+————————————————————————————————————————————————————————————
+[ARG0: I] [V: want] [ARG1: to go home]
+TOKEN: I      want to     go     home
+LABEL: B-ARG0 B-V  B-ARG1 I-ARG1 I-ARG1
+————————————————————————————————————————————————————————————
+[ARG0: I] want to [V: go] [ARG4: home]
+TOKEN: I      want to go  home
+LABEL: B-ARG0 .    .  B-V B-ARG4
+```
+
+For structured (AllenNLP-style) output:
+
+```python
+prediction_formatted(test_sentence)
+```
+
+```python
+{'verbs': [{'verb': 'want',
+   'description': '[ARG0: I] [V: want] [ARG1: to go home]',
+   'tags': ['B-ARG0', 'B-V', 'B-ARG1', 'I-ARG1', 'I-ARG1']},
+  {'verb': 'go',
+   'description': '[ARG0: I] want to [V: go] [ARG4: home]',
+   'tags': ['B-ARG0', 'O', 'O', 'B-V', 'B-ARG4']}],
+ 'words': ['I', 'want', 'to', 'go', 'home']}
+```
+
+## Repository Contents (Reference / Example Code)
+
+The files below are **example snippets** illustrating the training and inference pipeline. They are for reference only — the runnable, up-to-date versions of these modules are distributed with the model on Hugging Face (and are fetched automatically by `snapshot_download` in the Quick Start above).
 
 | File | Description |
 |---|---|
-| `data_prep.py` | Data preprocessing for SRL training |
-| `model.py` | Model architecture definition |
-| `training.py` | Finetuning script |
-| `testing.py` | Evaluation script |
-| `predicator.py` | Inference / prediction on new text |
+| `data_prep.py` | Example: data preprocessing for SRL training |
+| `model.py` | Example: `PredicateAwareSRL` model architecture (BERT backbone) |
+| `training.py` | Example: finetuning script |
+| `testing.py` | Example: evaluation script |
+| `predicator.py` | Example: inference / prediction on new text |
 
-## Quick Start
+## Model Weights & Working Code
 
-### 1. Use the pretrained model (recommended)
-
-Load the finetuned weights directly from the Hugging Face Hub:
-
-```python
-from transformers import AutoTokenizer, AutoModel
-
-tokenizer = AutoTokenizer.from_pretrained("yeomtong/srl_bert_model")
-model = AutoModel.from_pretrained("yeomtong/srl_bert_model")
-```
-
-Then run inference with:
-
-```bash
-python predicator.py
-```
-
-### 2. Train from scratch
-
-```bash
-python data_prep.py    # prepare training data
-python training.py     # finetune the model
-python testing.py      # evaluate
-```
-
-## Model Weights
-
-The trained model checkpoint is **not stored in this repository** due to file size limits. All weights, tokenizer files, and the model card live on the Hugging Face Hub:
+The trained checkpoint (`best_srl_Sep_29.ckpt`) and the working inference modules (`predictor.py`, `model.py`, `visualizer.py`) are **not stored in this repository** — they live on the Hugging Face Hub:
 
 - 🤗 **Model**: [yeomtong/srl_bert_model](https://huggingface.co/yeomtong/srl_bert_model)
 
