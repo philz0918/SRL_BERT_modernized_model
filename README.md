@@ -112,4 +112,4 @@ The trained checkpoint (`best_srl_Sep_29.ckpt`) and the working inference module
 
 ## Related Projects
 
-- [srl-aware-sepf](https://github.com/philz0918/srl-aware-sepf) — SRL-aware sentiment, emotion, politeness & formality analysis using this SRL model with gated fusion
+- [SRL-gated-fusion-sepf](https://github.com/philz0918/srl-aware-sepf) — SRL-aware sentiment, emotion, politeness & formality analysis using this SRL model with gated fusion
