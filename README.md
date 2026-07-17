@@ -10,9 +10,9 @@ BERT-based **Predicate-Aware Semantic Role Labeling (SRL)** model.
 
 ## Why This Model?
 
-In practice, **[AllenNLP](https://allenai.org/allennlp)** has been the go-to library for ready-to-use SRL — most other SRL models in the literature are research code intended for benchmarking, not directly usable out of the box. However, AllenNLP is no longer actively maintained and its SRL inference is relatively slow.
+In practice, **[AllenNLP](https://allenai.org/allennlp)** has long been the go-to library for ready-to-use SRL, but it is no longer actively maintained and its inference is relatively slow.
 
-**This model performs comparably to AllenNLP while running significantly faster** (up to ~10× with the BERT variant), and — unlike faster research models such as Zhang et al. (2022), which require substantial preprocessing and setup to run — it ships with **plug-and-play inference code**: download from Hugging Face and predict in a few lines (see Quick Start below).
+**This model achieves comparable (or better) performance while running significantly faster** — and it is designed for **ease of use**: download from Hugging Face and predict in a few lines, no additional preprocessing or setup required (see Quick Start below).
 
 ### Performance Comparison
 
@@ -25,8 +25,7 @@ In practice, **[AllenNLP](https://allenai.org/allennlp)** has been the go-to lib
 | Zhang et al. (2022) | 84.53 | 85.41 | 85.45 | 1.46 |
 
 - **Our Model (DeBERTa)** achieves the best F1 (87.49) and recall, outperforming AllenNLP while running ~1.7× faster.
-- **Our Model (BERT)** is the fastest usable option (1.36 min, ~10× faster than AllenNLP) with only a small F1 trade-off.
-- Zhang et al. (2022) is similarly fast but does not provide readily runnable inference code.
+- **Our Model (BERT)** offers the best speed–usability balance: ~10× faster than AllenNLP with only a small F1 trade-off, and ready to use out of the box.
 
 ## Installation
 
